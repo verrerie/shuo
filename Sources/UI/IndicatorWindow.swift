@@ -48,7 +48,6 @@ final class IndicatorWindow {
     func show(state: IndicatorState) {
         currentState = state
         hosting.rootView = AnyView(IndicatorView(state: state))
-        positionAtCursorScreen()
         panel.alphaValue = 1
     }
 
@@ -59,17 +58,5 @@ final class IndicatorWindow {
     func setState(_ state: IndicatorState) {
         currentState = state
         hosting.rootView = AnyView(IndicatorView(state: state))
-    }
-
-    private func positionAtCursorScreen() {
-        let mouseLoc = NSEvent.mouseLocation
-        let screen = NSScreen.screens.first(where: { NSMouseInRect(mouseLoc, $0.frame, false) }) ?? NSScreen.main!
-        let frame = panel.frame
-        let bottomInset: CGFloat = 24
-        let x = screen.frame.midX - frame.width / 2
-        let y = screen.visibleFrame.minY + bottomInset
-        // setFrameOrigin avoids the resize path inside NSWMWindowCoordinator
-        // that crashes on macOS 26; size never changes after init anyway.
-        panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 }
