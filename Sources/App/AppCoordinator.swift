@@ -174,8 +174,19 @@ final class AppCoordinator {
         }
         nc.addObserver(forName: NSNotification.Name.AVAudioEngineConfigurationChange, object: nil, queue: .main) { [weak self] _ in
             Task { @MainActor in
-                self?.dictation.cancel()
-                self?.notify("Audio device changed")
+                guard let self else { return }
+                // This notification fires not just when the user disconnects
+                // a device mid-turn, but also when AVAudioEngine is created
+                // and probes its input — which happens at the start of every
+                // dictation. If we react during start-up we'd cancel the very
+                // turn the user just initiated. Only act once we've been
+                // genuinely listening for a moment.
+                guard self.dictation.state == .listening,
+                      let started = self.dictation.turnStartedAt,
+                      Date().timeIntervalSince(started) > 1.0
+                else { return }
+                self.dictation.cancel()
+                self.notify("Audio device changed")
             }
         }
     }

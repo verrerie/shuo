@@ -53,8 +53,13 @@ final class DictationController {
     private let logger: DictationLogger?
 
     private(set) var state: State = .idle
-    private var turnStart: Date?
+    private(set) var turnStart: Date?
     private var bytesSent: Int = 0
+
+    /// Timestamp the current/most-recent turn started (nil if never started).
+    /// Exposed so observers can ignore audio-config notifications fired during
+    /// engine start-up (the first ~second of a turn).
+    var turnStartedAt: Date? { turnStart }
 
     var onIdleStateChange: ((Bool) -> Void)?
 

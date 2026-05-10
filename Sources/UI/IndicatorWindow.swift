@@ -11,8 +11,10 @@ final class IndicatorWindow {
         // Conventional HUD panel: use the proper utility/hud style instead of
         // borderless+statusBar. macOS 26's NSWMWindowCoordinator crashes when
         // making a `.borderless` `NSPanel` at `.statusBar` level visible.
+        // Wider, shorter — fits the horizontal listening-bars + capsule.
+        let panelSize = NSSize(width: 64, height: 26)
         panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 60, height: 30),
+            contentRect: NSRect(origin: .zero, size: panelSize),
             styleMask: [.titled, .nonactivatingPanel, .utilityWindow, .hudWindow],
             backing: .buffered, defer: false
         )
@@ -30,7 +32,7 @@ final class IndicatorWindow {
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         panel.tabbingMode = .disallowed
         panel.contentView = hosting
-        hosting.frame = NSRect(x: 0, y: 0, width: 60, height: 30)
+        hosting.frame = NSRect(origin: .zero, size: panelSize)
 
         // Order the panel on-screen ONCE here. Subsequent show()/hide() calls
         // toggle alphaValue instead of orderOut/orderFront. Reason: macOS 26's
@@ -39,8 +41,12 @@ final class IndicatorWindow {
         // orderFrontRegardless trips an assertion in clearDisplayAffinityForWindow.
         panel.alphaValue = 0
         if let screen = NSScreen.main {
-            panel.setFrameOrigin(NSPoint(x: screen.frame.midX - panel.frame.width / 2,
-                                         y: screen.visibleFrame.minY + 24))
+            // Sit ~80pt above the screen's bottom so it floats clear of the
+            // Dock and feels closer to the focused work area without covering
+            // the very bottom of typical text fields.
+            let bottomInset: CGFloat = 80
+            panel.setFrameOrigin(NSPoint(x: screen.frame.midX - panelSize.width / 2,
+                                         y: screen.visibleFrame.minY + bottomInset))
         }
         panel.orderFrontRegardless()
     }
