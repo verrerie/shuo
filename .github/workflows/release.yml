@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.2.0). Must already exist.'
+        required: true
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Build release archive
+        run: ./Scripts/build-release.sh
+
+      - name: Zip the .app
+        id: zip
+        run: |
+          cd build/export
+          ditto -c -k --keepParent Shuo.app Shuo.zip
+          echo "path=$(pwd)/Shuo.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          if [ -z "$TAG" ] || [ "$TAG" = "$GITHUB_REF" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+          fi
+          if [ -z "$TAG" ]; then
+            echo "no tag resolved" >&2
+            exit 1
+          fi
+          # Create the release if missing; upload the zip either way.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${{ steps.zip.outputs.path }}" --clobber
+          else
+            gh release create "$TAG" \
+              "${{ steps.zip.outputs.path }}" \
+              --title "$TAG" \
+              --generate-notes
+          fi
+
+# Notarization is intentionally not wired here — Shuo is ad-hoc signed
+# (CODE_SIGN_IDENTITY: "-") and is meant for personal use among trusted
+# users. To enable: add APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD + APPLE_TEAM_ID
+# secrets, swap CODE_SIGN_IDENTITY in project.yml for your Developer ID,
+# and append:
+#   xcrun notarytool submit Shuo.zip --apple-id "$APPLE_ID" \
+#     --password "$APPLE_APP_SPECIFIC_PASSWORD" --team-id "$APPLE_TEAM_ID" --wait
+#   xcrun stapler staple build/export/Shuo.app
+# before the zip step.
