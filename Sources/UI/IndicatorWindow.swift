@@ -11,18 +11,18 @@ final class IndicatorWindow {
         // Conventional HUD panel: use the proper utility/hud style instead of
         // borderless+statusBar. macOS 26's NSWMWindowCoordinator crashes when
         // making a `.borderless` `NSPanel` at `.statusBar` level visible.
-        // Wider, shorter — fits the horizontal listening-bars + capsule.
+        // Borderless: no titlebar chrome over the indicator content. This was
+        // originally avoided because of an NSWMWindowCoordinator crash on
+        // macOS 26 when ordering a borderless panel front, but that crash
+        // only fired when we orderOut/orderFront-cycled on each show.
+        // We now order-front exactly once during init and toggle alphaValue
+        // for show/hide, which leaves screen affinity untouched and is safe.
         let panelSize = NSSize(width: 64, height: 26)
         panel = NSPanel(
             contentRect: NSRect(origin: .zero, size: panelSize),
-            styleMask: [.titled, .nonactivatingPanel, .utilityWindow, .hudWindow],
+            styleMask: [.borderless, .nonactivatingPanel],
             backing: .buffered, defer: false
         )
-        panel.titleVisibility = .hidden
-        panel.titlebarAppearsTransparent = true
-        panel.standardWindowButton(.closeButton)?.isHidden = true
-        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
-        panel.standardWindowButton(.zoomButton)?.isHidden = true
         panel.isMovable = false
         panel.isOpaque = false
         panel.backgroundColor = .clear
@@ -41,10 +41,8 @@ final class IndicatorWindow {
         // orderFrontRegardless trips an assertion in clearDisplayAffinityForWindow.
         panel.alphaValue = 0
         if let screen = NSScreen.main {
-            // Sit ~80pt above the screen's bottom so it floats clear of the
-            // Dock and feels closer to the focused work area without covering
-            // the very bottom of typical text fields.
-            let bottomInset: CGFloat = 80
+            // Sit just above the Dock — close to the very bottom of the screen.
+            let bottomInset: CGFloat = 16
             panel.setFrameOrigin(NSPoint(x: screen.frame.midX - panelSize.width / 2,
                                          y: screen.visibleFrame.minY + bottomInset))
         }
