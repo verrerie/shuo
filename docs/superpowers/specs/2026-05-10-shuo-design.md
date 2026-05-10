@@ -14,7 +14,7 @@
 - Per-install fixed default language with a quick-switch hotkey (default ⌃⌥⇧L).
 - Bottom-center floating dot as the only "listening" indicator (no caret tracking).
 - Insertion via clipboard save → write transcript → simulate ⌘V → restore clipboard.
-- Two separate Macs, one config each. API key stored in macOS Keychain.
+- Two separate Macs, one config each. API key stored in a plain JSON config file (Keychain deferred to a later version).
 - Daily soft cost cap (default 60 min/day) and rolling local log (no transcript content).
 
 ### Out of scope (v1)
@@ -32,8 +32,8 @@
 
 A single window with five elements:
 
-1. OpenAI API key field → stored in Keychain.
-2. Default language picker (zh / fr / en, plus a few more from the Whisper-supported set — no "auto" in v1; the user picks one and changes it via the cycle hotkey or the menu).
+1. OpenAI API key field → stored in `~/Library/Application Support/Shuo/config.json`.
+2. Default language picker — **zh / en / fr only** in v1. Changed via the cycle hotkey or the menu.
 3. Hotkey display ("Double-tap Left-Option") with a Change… button.
 4. Three permission rows with status pills: Microphone, Accessibility, Input Monitoring. Each has a "Grant…" button that deep-links to the right pane of System Settings.
 5. A "Test it" button that opens a tiny scratch text field and prompts the user to dictate.
@@ -41,11 +41,11 @@ A single window with five elements:
 ### Steady state
 
 - Menu-bar icon (`waveform` SF Symbol). Pulses while listening.
-- Right- or left-click opens a menu: current language with a submenu to switch, Pause/Resume, Preferences…, Reveal Log in Finder, Quit.
+- Right- or left-click opens a menu: current language (zh / en / fr) with a submenu to switch, Pause/Resume, Preferences…, Reveal Log in Finder, Quit.
 - Hotkey works system-wide.
 - Bottom-center dot (14 px, soft 1 Hz opacity pulse) appears on the screen containing the mouse cursor while listening; switches to a brief spinner ring during the finalizing window between commit and the `.completed` event; hides on completion.
 - Transcript is pasted into the frontmost app via simulated ⌘V; clipboard is restored ~120 ms later.
-- Language-switch hotkey cycles the active language and shows a 1-second toast above the dot ("zh → fr → en").
+- Language-switch hotkey cycles the active language through `zh → en → fr → zh` and shows a 1-second toast above the dot.
 
 ## 3. Architecture
 
@@ -68,7 +68,7 @@ Five components, one stateful coordinator.
 │ (clipboard+⌘V)│             └──────────────┘
 └──────────────┘
                   ┌──────────────┐
-                  │ Settings +   │  Keychain (api key), UserDefaults (lang, hotkey)
+                  │ Settings +   │  config.json (api key, lang, hotkey, daily cap)
                   │ MenuBarIcon  │
                   └──────────────┘
 ```
@@ -83,7 +83,7 @@ Five components, one stateful coordinator.
 - **IndicatorWindow** — borderless, click-through, `.statusBar`-level `NSPanel`. SwiftUI content. Allocated once at launch; `orderFront`/`orderOut` per turn. Repositions to bottom-center of the cursor's current screen on each show. `collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]`.
 - **TextInjector** — pasteboard snapshot/restore around a posted ⌘V `CGEvent`. 120 ms wait between paste and restore. Snapshot covers all type identifiers present (string, RTF, image, etc.).
 - **DictationController** — coordinates the four. Holds the mutable state machine. Owns the daily cap counter and the per-turn log line emission.
-- **Settings + MenuBarIcon** — `NSStatusItem` host, settings window, Keychain accessor. Reads API key once into memory at launch.
+- **Settings + MenuBarIcon** — `NSStatusItem` host, settings window, JSON config reader/writer (`~/Library/Application Support/Shuo/config.json`, mode `0600`). Reads API key once into memory at launch.
 
 ## 4. Network protocol
 
@@ -100,7 +100,7 @@ Five components, one stateful coordinator.
            "input_audio_format": "pcm16",
            "input_audio_transcription": {
              "model": "gpt-realtime-whisper",
-             "language": "<zh|fr|en|...>"
+             "language": "<zh|en|fr>"
            },
            "turn_detection": null
          }
@@ -178,17 +178,29 @@ The 400 ms window is configurable in code (not exposed in UI in v1). The monitor
 
 Each is shown in Preferences with a status pill and a deep-link button to the relevant System Settings pane.
 
-### API key
+### API key and config storage
 
-- Stored in Keychain, `service: app.shuo`, `account: openai-api-key`.
+- Stored in `~/Library/Application Support/Shuo/config.json` along with the rest of the user's settings (default language, hotkey modifier, daily cap).
+- File is created with mode `0600` (readable only by the owning user).
 - Loaded once into memory at launch.
 - Sent as `Authorization: Bearer <key>` on every WebSocket open.
-- On 401 from the server: wipe the in-memory copy, surface a notification ("API key rejected — open Preferences"), refuse to start dictation until re-entered.
-- Never logged, never written outside Keychain.
+- On 401 from the server: wipe the in-memory copy, surface a notification ("API key rejected — open Preferences"), refuse to start dictation until re-entered. The on-disk value is not auto-cleared (the user re-saves from Preferences).
+- Never logged.
+
+Example config file:
+
+```json
+{
+  "openai_api_key": "sk-...",
+  "default_language": "fr",
+  "hotkey_modifier": "left_option",
+  "daily_cap_minutes": 60
+}
+```
 
 ### Trust model
 
-API key lives client-side in Keychain on each user's personal Mac. Same trust model as anyone using the OpenAI Playground. A backend proxy is not justified for two trusted users.
+API key lives client-side in a plain file on each user's personal Mac, readable only by that user. Same trust model as anyone using the OpenAI Playground. A backend proxy is not justified for two trusted users. Moving the key into Keychain is listed under future work.
 
 ## 7. Errors and edge cases
 
@@ -242,7 +254,7 @@ No transcript content is logged. Menu has "Reveal Log in Finder" so the user can
 - Multi-monitor: dot appears on the screen with the cursor.
 - AirPods disconnect mid-dictation → graceful stop.
 - Lock screen mid-dictation → no crash on wake.
-- 30-second dictation in each of zh / fr / en.
+- 30-second dictation in each of zh / en / fr.
 - Daily cap: temporarily set to 1 minute; confirm it triggers and lifts at midnight.
 
 ### Explicitly not tested in CI
@@ -251,7 +263,9 @@ No transcript content is logged. Menu has "Reveal Log in Finder" so the user can
 
 ## 9. Open questions / future work
 
+- Move the API key from the JSON config file into macOS Keychain.
 - Persistent connection (one WS, many turns) if first-paste latency proves bothersome.
 - AX-based insertion fallback for native Cocoa fields, with paste as the universal fallback.
 - Optional auto-stop after N seconds of silence as a safety net layered on top of toggle mode.
+- Add more languages once we know we want them.
 - Translation mode (transcribe in language X, paste in language Y).
