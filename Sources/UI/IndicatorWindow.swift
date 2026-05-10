@@ -4,19 +4,9 @@ import SwiftUI
 final class IndicatorWindow {
     private let panel: NSPanel
     private let hosting: NSHostingView<AnyView>
-    private var currentState: IndicatorState = .listening
 
     init() {
         hosting = NSHostingView(rootView: AnyView(IndicatorView(state: .listening)))
-        // Conventional HUD panel: use the proper utility/hud style instead of
-        // borderless+statusBar. macOS 26's NSWMWindowCoordinator crashes when
-        // making a `.borderless` `NSPanel` at `.statusBar` level visible.
-        // Borderless: no titlebar chrome over the indicator content. This was
-        // originally avoided because of an NSWMWindowCoordinator crash on
-        // macOS 26 when ordering a borderless panel front, but that crash
-        // only fired when we orderOut/orderFront-cycled on each show.
-        // We now order-front exactly once during init and toggle alphaValue
-        // for show/hide, which leaves screen affinity untouched and is safe.
         let panelSize = NSSize(width: 64, height: 26)
         panel = NSPanel(
             contentRect: NSRect(origin: .zero, size: panelSize),
@@ -34,17 +24,15 @@ final class IndicatorWindow {
         panel.contentView = hosting
         hosting.frame = NSRect(origin: .zero, size: panelSize)
 
-        // Order the panel on-screen ONCE here. Subsequent show()/hide() calls
-        // toggle alphaValue instead of orderOut/orderFront. Reason: macOS 26's
-        // NSWMWindowCoordinator crashes the second time a panel is ordered
-        // front — orderOut clears its screen affinity, and the next
+        // macOS 26's NSWMWindowCoordinator crashes the second time a panel is
+        // ordered front — orderOut clears its screen affinity and the next
         // orderFrontRegardless trips an assertion in clearDisplayAffinityForWindow.
+        // So order-front exactly once here and use alphaValue for show/hide.
         panel.alphaValue = 0
         if let screen = NSScreen.main {
-            // Hug the absolute bottom edge of the display (frame, not
-            // visibleFrame — visibleFrame stops above the Dock and was leaving
-            // a visible gap). Floating-level + ignoresMouseEvents means we
-            // overlay the Dock without interfering with it.
+            // Anchor to screen.frame (not visibleFrame) so the indicator hugs
+            // the absolute bottom edge — visibleFrame stops above the Dock.
+            // Floating + ignoresMouseEvents means we overlay the Dock harmlessly.
             let bottomInset: CGFloat = 2
             panel.setFrameOrigin(NSPoint(x: screen.frame.midX - panelSize.width / 2,
                                          y: screen.frame.minY + bottomInset))
@@ -53,8 +41,7 @@ final class IndicatorWindow {
     }
 
     func show(state: IndicatorState) {
-        currentState = state
-        hosting.rootView = AnyView(IndicatorView(state: state))
+        setState(state)
         panel.alphaValue = 1
     }
 
@@ -63,7 +50,6 @@ final class IndicatorWindow {
     }
 
     func setState(_ state: IndicatorState) {
-        currentState = state
         hosting.rootView = AnyView(IndicatorView(state: state))
     }
 }

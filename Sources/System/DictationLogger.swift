@@ -20,9 +20,9 @@ final class DictationLogger {
 
     private var fileURL: URL { directory.appendingPathComponent("shuo.log") }
 
-    func log(durationMs: Int, bytesSent: Int, language: String, result: String) {
+    func log(durationMs: Int, bytesSent: Int, language: Language, result: String) {
         queue.async { [self] in
-            let line = "\(formatter.string(from: Date())) | dur_ms=\(durationMs) bytes_sent=\(bytesSent) lang=\(language) result=\(result)\n"
+            let line = "\(formatter.string(from: Date())) | dur_ms=\(durationMs) bytes_sent=\(bytesSent) lang=\(language.rawValue) result=\(result)\n"
             guard let data = line.data(using: .utf8) else { return }
             if FileManager.default.fileExists(atPath: fileURL.path) {
                 if let handle = try? FileHandle(forWritingTo: fileURL) {

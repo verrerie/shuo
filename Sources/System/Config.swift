@@ -3,6 +3,8 @@ import Foundation
 
 enum Language: String, Codable, CaseIterable {
     case zh, en, fr
+
+    var displayName: String { rawValue.uppercased() }
 }
 
 enum HotkeyModifier: String, Codable {
@@ -35,19 +37,18 @@ struct ConfigStore {
 
     init(directory: URL = ConfigStore.defaultDirectory()) {
         self.directory = directory
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 
     private var fileURL: URL { directory.appendingPathComponent(filename) }
 
     func load() throws -> Config {
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         guard FileManager.default.fileExists(atPath: fileURL.path) else { return Config() }
         let data = try Data(contentsOf: fileURL)
         return try JSONDecoder().decode(Config.self, from: data)
     }
 
     func save(_ config: Config) throws {
-        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         let data = try encoder.encode(config)

@@ -14,8 +14,8 @@ final class DictationLoggerTests: XCTestCase {
 
     func test_writes_one_line_per_entry() throws {
         let log = DictationLogger(directory: dir, maxBytes: 1_000_000)
-        log.log(durationMs: 2410, bytesSent: 120480, language: "fr", result: "ok")
-        log.log(durationMs: 850, bytesSent: 42112, language: "zh", result: "err:rate_limit_exceeded")
+        log.log(durationMs: 2410, bytesSent: 120480, language: .fr, result: "ok")
+        log.log(durationMs: 850, bytesSent: 42112, language: .zh, result: "err:rate_limit_exceeded")
         log.waitForPendingWrites()
 
         let path = dir.appendingPathComponent("shuo.log").path
@@ -29,7 +29,7 @@ final class DictationLoggerTests: XCTestCase {
     func test_truncates_when_exceeding_max_bytes() throws {
         let log = DictationLogger(directory: dir, maxBytes: 200)
         for _ in 0..<50 {
-            log.log(durationMs: 1000, bytesSent: 50000, language: "en", result: "ok")
+            log.log(durationMs: 1000, bytesSent: 50000, language: .en, result: "ok")
         }
         log.waitForPendingWrites()
 

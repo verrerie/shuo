@@ -11,7 +11,7 @@ protocol AudioCaptureProtocol: AnyObject {
 }
 
 protocol RealtimeClientProtocol: AnyObject {
-    func start(language: String) async throws
+    func start(language: Language) async throws
     func appendAudio(_ pcm16: Data) async throws
     func finishAndAwaitTranscript() async throws -> String
     func cancel()
@@ -53,13 +53,9 @@ final class DictationController {
     private let logger: DictationLogger?
 
     private(set) var state: State = .idle
-    private(set) var turnStart: Date?
+    /// nil between turns; set when a turn enters .listening.
+    private(set) var turnStartedAt: Date?
     private var bytesSent: Int = 0
-
-    /// Timestamp the current/most-recent turn started (nil if never started).
-    /// Exposed so observers can ignore audio-config notifications fired during
-    /// engine start-up (the first ~second of a turn).
-    var turnStartedAt: Date? { turnStart }
 
     var onIdleStateChange: ((Bool) -> Void)?
 
@@ -84,10 +80,9 @@ final class DictationController {
         guard state == .idle else { throw DictationError.alreadyRunning }
         if case .blocked = cap.state() { throw DictationError.blockedByDailyCap }
 
-        let lang = language().rawValue
-        try await realtime.start(language: lang)
+        try await realtime.start(language: language())
         try audio.start()
-        turnStart = Date()
+        turnStartedAt = Date()
         bytesSent = 0
         state = .listening
         indicator.show(state: .listening)
@@ -95,19 +90,13 @@ final class DictationController {
     }
 
     func stop() async throws {
-        os_log("stop entered, state=%{public}@", log: ctrlLog, type: .info, String(describing: state))
-        guard state == .listening else {
-            os_log("stop bailing — state is not .listening", log: ctrlLog, type: .info)
-            return
-        }
+        guard state == .listening else { return }
         state = .finalizing
         indicator.setState(.finalizing)
         audio.stop()
-        os_log("audio stopped, awaiting transcript", log: ctrlLog, type: .info)
 
         do {
             let text = try await realtime.finishAndAwaitTranscript()
-            os_log("transcript received, len=%d", log: ctrlLog, type: .info, text.count)
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty { paste.paste(trimmed) }
             logTurn(result: trimmed.isEmpty ? "ok:empty" : "ok")
@@ -137,18 +126,17 @@ final class DictationController {
     }
 
     private func handleChunk(_ data: Data) {
-        // Sometimes the AVAudioEngine tap fires with a 0-frame buffer at the
-        // very start; sending an empty input_audio_buffer.append makes the
-        // server reject the whole turn ("Expected base64-encoded audio bytes
-        // ... but got empty bytes"). Filter zero-byte chunks here.
+        // Skip empty buffers — the server rejects empty input_audio_buffer.append
+        // with "Expected base64-encoded audio bytes ... but got empty bytes",
+        // and the AVAudioEngine tap can fire one at the very start of a turn.
         guard !data.isEmpty else { return }
         bytesSent += data.count
         Task { try? await realtime.appendAudio(data) }
     }
 
     private func logTurn(result: String) {
-        let dur = Int((Date().timeIntervalSince(turnStart ?? Date())) * 1000)
+        let dur = Int((Date().timeIntervalSince(turnStartedAt ?? Date())) * 1000)
         cap.add(seconds: max(0, dur / 1000))
-        logger?.log(durationMs: dur, bytesSent: bytesSent, language: language().rawValue, result: result)
+        logger?.log(durationMs: dur, bytesSent: bytesSent, language: language(), result: result)
     }
 }

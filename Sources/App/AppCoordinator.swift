@@ -76,19 +76,10 @@ final class AppCoordinator {
     }
 
     private func handleHotkey(_ action: DoubleTapDetector.Action) {
-        os_log("hotkey action=%{public}@ paused=%{public}d hasKey=%{public}d state=%{public}@",
-               log: coordLog, type: .info,
-               String(describing: action), paused ? 1 : 0,
-               config.openaiApiKey.isEmpty ? 0 : 1,
-               String(describing: dictation?.state ?? .idle))
-        guard !paused, !config.openaiApiKey.isEmpty else {
-            os_log("hotkey ignored (paused or no key)", log: coordLog, type: .info)
-            return
-        }
+        guard !paused, !config.openaiApiKey.isEmpty else { return }
         switch action {
         case .start:
             Task { @MainActor in
-                os_log("calling dictation.start", log: coordLog, type: .info)
                 do { try await dictation.start() }
                 catch DictationError.blockedByDailyCap { notify("Daily cap reached") }
                 catch { notify("Could not start: \(error.localizedDescription)") }
@@ -96,14 +87,13 @@ final class AppCoordinator {
             }
         case .stop:
             Task { @MainActor in
-                os_log("calling dictation.stop", log: coordLog, type: .info)
                 do {
                     try await dictation.stop()
-                    os_log("dictation.stop returned", log: coordLog, type: .info)
                 } catch let e as RealtimeError where e.code == "401" || e.code.hasPrefix("ws_closed_4") {
                     handleAuthFailure()
                 } catch {
-                    os_log("dictation.stop threw: %{public}@", log: coordLog, type: .error, String(describing: error))
+                    os_log("dictation.stop threw: %{public}@", log: coordLog, type: .error,
+                           String(describing: error))
                 }
                 refreshCapWarning()
             }
@@ -123,7 +113,10 @@ final class AppCoordinator {
         menuBar.setLanguage(l)
     }
 
-    private func togglePause() { paused.toggle() }
+    private func togglePause() {
+        paused.toggle()
+        menuBar.setPaused(paused)
+    }
 
     private func refreshCapWarning() {
         switch cap.state() {

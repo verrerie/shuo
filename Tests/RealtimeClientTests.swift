@@ -25,7 +25,7 @@ final class RealtimeClientTests: XCTestCase {
     func test_start_sends_session_update_then_connects() async throws {
         let fake = FakeTransport()
         let client = RealtimeClient(transport: fake, apiKey: "sk-x")
-        try await client.start(language: "fr")
+        try await client.start(language: .fr)
         XCTAssertTrue(fake.connectCalled)
         XCTAssertEqual(fake.sentMessages.count, 1)
         let json = try JSONSerialization.jsonObject(with: fake.sentMessages[0]) as! [String: Any]
@@ -35,7 +35,7 @@ final class RealtimeClientTests: XCTestCase {
     func test_appendAudio_sends_base64_chunk() async throws {
         let fake = FakeTransport()
         let client = RealtimeClient(transport: fake, apiKey: "sk-x")
-        try await client.start(language: "en")
+        try await client.start(language: .en)
         try await client.appendAudio(Data([0, 1, 2, 3]))
         XCTAssertEqual(fake.sentMessages.count, 2)
         let json = try JSONSerialization.jsonObject(with: fake.sentMessages.last!) as! [String: Any]
@@ -46,7 +46,7 @@ final class RealtimeClientTests: XCTestCase {
     func test_completed_event_resolves_finish() async throws {
         let fake = FakeTransport()
         let client = RealtimeClient(transport: fake, apiKey: "sk-x")
-        try await client.start(language: "en")
+        try await client.start(language: .en)
         let task = Task { try await client.finishAndAwaitTranscript() }
         try await Task.sleep(nanoseconds: 50_000_000)
         fake.deliver(#"{"type":"conversation.item.input_audio_transcription.completed","transcript":"hello"}"#.data(using: .utf8)!)
@@ -57,7 +57,7 @@ final class RealtimeClientTests: XCTestCase {
     func test_error_event_throws() async throws {
         let fake = FakeTransport()
         let client = RealtimeClient(transport: fake, apiKey: "sk-x")
-        try await client.start(language: "en")
+        try await client.start(language: .en)
         let task = Task { try await client.finishAndAwaitTranscript() }
         try await Task.sleep(nanoseconds: 50_000_000)
         fake.deliver(#"{"type":"error","error":{"code":"rate_limit_exceeded","message":"slow down"}}"#.data(using: .utf8)!)

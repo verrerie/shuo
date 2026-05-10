@@ -46,11 +46,8 @@ private struct ListeningBars: View {
     }
 
     private func barHeight(_ i: Int) -> CGFloat {
-        // Three heights cycle through positions; the "active" bar is tallest.
-        let active = (i == phase)
-        let near = (i == (phase + 2) % 3)
-        if active { return 14 }
-        if near { return 9 }
+        if i == phase { return 14 }
+        if i == (phase + 2) % 3 { return 9 }
         return 5
     }
 }

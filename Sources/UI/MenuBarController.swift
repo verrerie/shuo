@@ -10,6 +10,7 @@ final class MenuBarController: NSObject {
     private let onQuit: () -> Void
 
     private var currentLanguage: Language = .en
+    /// Mirrors AppCoordinator.paused for menu rendering — coordinator owns truth.
     private var paused: Bool = false
 
     init(
@@ -36,6 +37,11 @@ final class MenuBarController: NSObject {
         rebuildMenu()
     }
 
+    func setPaused(_ on: Bool) {
+        paused = on
+        rebuildMenu()
+    }
+
     func setListening(_ on: Bool) {
         item.button?.image = NSImage(systemSymbolName: on ? "waveform.circle.fill" : "waveform",
                                      accessibilityDescription: "Shuo")
@@ -48,10 +54,10 @@ final class MenuBarController: NSObject {
     private func rebuildMenu() {
         menu.removeAllItems()
 
-        let langItem = NSMenuItem(title: "Language: \(currentLanguage.rawValue.uppercased())", action: nil, keyEquivalent: "")
+        let langItem = NSMenuItem(title: "Language: \(currentLanguage.displayName)", action: nil, keyEquivalent: "")
         let langSub = NSMenu()
         for l in Language.allCases {
-            let m = NSMenuItem(title: l.rawValue.uppercased(), action: #selector(selectLanguage(_:)), keyEquivalent: "")
+            let m = NSMenuItem(title: l.displayName, action: #selector(selectLanguage(_:)), keyEquivalent: "")
             m.target = self
             m.representedObject = l
             m.state = (l == currentLanguage) ? .on : .off
@@ -85,7 +91,7 @@ final class MenuBarController: NSObject {
         guard let l = sender.representedObject as? Language else { return }
         onSelectLanguage(l)
     }
-    @objc private func togglePause() { paused.toggle(); rebuildMenu(); onTogglePause() }
+    @objc private func togglePause() { onTogglePause() }
     @objc private func showPrefs() { onShowPreferences() }
     @objc private func revealLog() { onRevealLog() }
     @objc private func quit() { onQuit() }

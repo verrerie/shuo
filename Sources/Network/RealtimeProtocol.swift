@@ -2,36 +2,32 @@
 import Foundation
 
 enum OutMessage {
-    case sessionUpdate(model: String, language: String)
+    case sessionUpdate(model: String, language: Language)
     case audioAppend(base64: String)
     case audioCommit
 
-    func jsonEncoded() throws -> Data {
+    func jsonEncoded() -> Data {
         switch self {
         case .sessionUpdate(let model, let language):
             // GA Realtime API shape (verified live 2026-05-10).
             // Hand-crafted as a string because the live server returns a
             // generic server_error for the same payload when it's serialized
-            // by JSONSerialization with arbitrary key order (or with escaped
-            // slashes). Node's JSON.stringify produced a working payload in
-            // a specific order; we reproduce it byte-for-byte. Inputs are
-            // controlled (model is a constant, language is one of zh/en/fr).
-            let escapedModel = model.replacingOccurrences(of: "\"", with: "\\\"")
-            let escapedLang = language.replacingOccurrences(of: "\"", with: "\\\"")
-            // noise_reduction: "near_field" — appropriate for headset mics and
-            // built-in laptop mics held close to the user. The other option,
-            // "far_field", is for speakerphone-style setups; we don't need it.
-            let json = "{\"type\":\"session.update\",\"session\":{\"type\":\"transcription\",\"audio\":{\"input\":{\"format\":{\"type\":\"audio/pcm\",\"rate\":24000},\"transcription\":{\"model\":\"\(escapedModel)\",\"language\":\"\(escapedLang)\"},\"noise_reduction\":{\"type\":\"near_field\"},\"turn_detection\":null}}}}"
+            // by JSONSerialization with arbitrary key order or with escaped
+            // slashes ("audio/pcm" → "audio\/pcm"). We reproduce the byte
+            // sequence Node's JSON.stringify produced. Inputs are controlled
+            // (model is a constant, language is one of zh/en/fr).
+            //
+            // noise_reduction: near_field — for headset / built-in laptop mic.
+            // far_field is for speakerphone setups; not used here.
+            let json = "{\"type\":\"session.update\",\"session\":{\"type\":\"transcription\",\"audio\":{\"input\":{\"format\":{\"type\":\"audio/pcm\",\"rate\":24000},\"transcription\":{\"model\":\"\(model)\",\"language\":\"\(language.rawValue)\"},\"noise_reduction\":{\"type\":\"near_field\"},\"turn_detection\":null}}}}"
             return Data(json.utf8)
         case .audioAppend(let b64):
-            return try JSONSerialization.data(withJSONObject: [
-                "type": "input_audio_buffer.append",
-                "audio": b64
-            ])
+            // Hand-built for the same reason as sessionUpdate, plus this is
+            // on the per-chunk hot path (~3-10×/s) — one allocation instead
+            // of three (dict + serializer + Data).
+            return Data("{\"type\":\"input_audio_buffer.append\",\"audio\":\"\(b64)\"}".utf8)
         case .audioCommit:
-            return try JSONSerialization.data(withJSONObject: [
-                "type": "input_audio_buffer.commit"
-            ])
+            return Data("{\"type\":\"input_audio_buffer.commit\"}".utf8)
         }
     }
 }

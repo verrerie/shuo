@@ -23,7 +23,7 @@ struct PreferencesView: View {
             Section("Language") {
                 Picker("Default language", selection: $config.defaultLanguage) {
                     ForEach(Language.allCases, id: \.self) { l in
-                        Text(l.rawValue.uppercased()).tag(l)
+                        Text(l.displayName).tag(l)
                     }
                 }
                 .pickerStyle(.segmented)

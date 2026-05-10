@@ -13,12 +13,12 @@ final class DictationStateMachineTests: XCTestCase {
     }
 
     final class FakeRealtime: RealtimeClientProtocol {
-        var startedLanguage: String?
+        var startedLanguage: Language?
         var appended: [Data] = []
         var finishCalled = false
         var cancelCalled = false
         var transcript: String = "result"
-        func start(language: String) async throws { startedLanguage = language }
+        func start(language: Language) async throws { startedLanguage = language }
         func appendAudio(_ pcm16: Data) async throws { appended.append(pcm16) }
         func finishAndAwaitTranscript() async throws -> String { finishCalled = true; return transcript }
         func cancel() { cancelCalled = true }
@@ -44,7 +44,7 @@ final class DictationStateMachineTests: XCTestCase {
                                        cap: cap, language: { .fr }, logger: nil)
 
         try await ctrl.start()
-        XCTAssertTrue(audio.started); XCTAssertEqual(rt.startedLanguage, "fr"); XCTAssertEqual(ind.state, .listening)
+        XCTAssertTrue(audio.started); XCTAssertEqual(rt.startedLanguage, .fr); XCTAssertEqual(ind.state, .listening)
 
         audio.onChunk?(Data([0,1,2,3]))
         try await Task.sleep(nanoseconds: 30_000_000)

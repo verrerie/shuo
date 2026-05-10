@@ -32,7 +32,7 @@ final class RealtimeClient {
         transport.onClose = { [weak self] code in self?.handleClose(code: code) }
     }
 
-    func start(language: String) async throws {
+    func start(language: Language) async throws {
         // Reset per-turn state. The previous turn's normal-closure causes
         // handleClose to populate earlyError; without this reset, the next
         // turn's finishAndAwaitTranscript would throw the stale error
@@ -46,8 +46,8 @@ final class RealtimeClient {
         try await transport.connect(url: url, headers: [
             "Authorization": "Bearer \(apiKey)"
         ])
-        let payload = try OutMessage.sessionUpdate(model: model, language: language).jsonEncoded()
-        if let s = String(data: payload, encoding: .utf8) {
+        let payload = OutMessage.sessionUpdate(model: model, language: language).jsonEncoded()
+        if log.isEnabled(type: .info), let s = String(data: payload, encoding: .utf8) {
             os_log("send %{public}@", log: log, type: .info, s)
         }
         try await transport.send(payload)
@@ -57,24 +57,6 @@ final class RealtimeClient {
         guard !pcm16.isEmpty else { return }
         let b64 = pcm16.base64EncodedString()
         try await transport.send(OutMessage.audioAppend(base64: b64).jsonEncoded())
-        os_log("send append %d bytes (peak %d)", log: log, type: .info, pcm16.count, pcm16Peak(pcm16))
-    }
-
-    /// Returns the absolute-value peak amplitude of an Int16 LE PCM buffer.
-    /// Used purely for diagnostics — if peak is near zero we know the audio
-    /// is silent before it leaves the app.
-    private func pcm16Peak(_ data: Data) -> Int {
-        var peak: Int16 = 0
-        data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
-            let count = data.count / MemoryLayout<Int16>.size
-            let i16 = ptr.bindMemory(to: Int16.self)
-            for i in 0..<count {
-                let v = i16[i]
-                let absV = (v == Int16.min) ? Int16.max : abs(v)
-                if absV > peak { peak = absV }
-            }
-        }
-        return Int(peak)
     }
 
     func finishAndAwaitTranscript() async throws -> String {
@@ -101,8 +83,7 @@ final class RealtimeClient {
     }
 
     private func handleIncoming(_ data: Data) {
-        // Log every server message so we can see what's going on in Console.
-        if let s = String(data: data, encoding: .utf8) {
+        if log.isEnabled(type: .info), let s = String(data: data, encoding: .utf8) {
             os_log("recv %{public}@", log: log, type: .info, s)
         }
         guard let event = try? RealtimeEvent.decode(data) else { return }

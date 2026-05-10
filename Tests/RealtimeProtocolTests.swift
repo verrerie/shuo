@@ -5,7 +5,7 @@ import XCTest
 final class RealtimeProtocolTests: XCTestCase {
 
     func test_session_update_uses_ga_shape_and_disables_vad() throws {
-        let msg = OutMessage.sessionUpdate(model: "gpt-realtime-whisper", language: "fr")
+        let msg = OutMessage.sessionUpdate(model: "gpt-realtime-whisper", language: .fr)
         let json = try jsonObject(from: msg)
         XCTAssertEqual(json["type"] as? String, "session.update")
         let session = json["session"] as? [String: Any]
@@ -60,7 +60,6 @@ final class RealtimeProtocolTests: XCTestCase {
     }
 
     private func jsonObject(from msg: OutMessage) throws -> [String: Any] {
-        let data = try msg.jsonEncoded()
-        return try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        try JSONSerialization.jsonObject(with: msg.jsonEncoded()) as! [String: Any]
     }
 }
