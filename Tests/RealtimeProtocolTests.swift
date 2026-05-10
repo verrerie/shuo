@@ -17,6 +17,8 @@ final class RealtimeProtocolTests: XCTestCase {
         let trans = input?["transcription"] as? [String: Any]
         XCTAssertEqual(trans?["model"] as? String, "gpt-realtime-whisper")
         XCTAssertEqual(trans?["language"] as? String, "fr")
+        let nr = input?["noise_reduction"] as? [String: Any]
+        XCTAssertEqual(nr?["type"] as? String, "near_field")
         XCTAssertTrue(input?["turn_detection"] is NSNull)
     }
 

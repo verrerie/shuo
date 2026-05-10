@@ -18,7 +18,10 @@ enum OutMessage {
             // controlled (model is a constant, language is one of zh/en/fr).
             let escapedModel = model.replacingOccurrences(of: "\"", with: "\\\"")
             let escapedLang = language.replacingOccurrences(of: "\"", with: "\\\"")
-            let json = "{\"type\":\"session.update\",\"session\":{\"type\":\"transcription\",\"audio\":{\"input\":{\"format\":{\"type\":\"audio/pcm\",\"rate\":24000},\"transcription\":{\"model\":\"\(escapedModel)\",\"language\":\"\(escapedLang)\"},\"turn_detection\":null}}}}"
+            // noise_reduction: "near_field" — appropriate for headset mics and
+            // built-in laptop mics held close to the user. The other option,
+            // "far_field", is for speakerphone-style setups; we don't need it.
+            let json = "{\"type\":\"session.update\",\"session\":{\"type\":\"transcription\",\"audio\":{\"input\":{\"format\":{\"type\":\"audio/pcm\",\"rate\":24000},\"transcription\":{\"model\":\"\(escapedModel)\",\"language\":\"\(escapedLang)\"},\"noise_reduction\":{\"type\":\"near_field\"},\"turn_detection\":null}}}}"
             return Data(json.utf8)
         case .audioAppend(let b64):
             return try JSONSerialization.data(withJSONObject: [
