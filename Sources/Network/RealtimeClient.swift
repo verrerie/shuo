@@ -33,25 +33,60 @@ final class RealtimeClient {
     }
 
     func start(language: String) async throws {
+        // Reset per-turn state. The previous turn's normal-closure causes
+        // handleClose to populate earlyError; without this reset, the next
+        // turn's finishAndAwaitTranscript would throw the stale error
+        // before ever sending commit.
+        earlyError = nil
+        pendingTranscript = nil
+
         // GA Realtime API: do NOT send OpenAI-Beta. The realtime=v1 header
         // pins us to the legacy beta endpoint, which doesn't have
         // gpt-realtime-whisper.
         try await transport.connect(url: url, headers: [
             "Authorization": "Bearer \(apiKey)"
         ])
-        try await transport.send(OutMessage.sessionUpdate(model: model, language: language).jsonEncoded())
+        let payload = try OutMessage.sessionUpdate(model: model, language: language).jsonEncoded()
+        if let s = String(data: payload, encoding: .utf8) {
+            os_log("send %{public}@", log: log, type: .info, s)
+        }
+        try await transport.send(payload)
     }
 
     func appendAudio(_ pcm16: Data) async throws {
+        guard !pcm16.isEmpty else { return }
         let b64 = pcm16.base64EncodedString()
         try await transport.send(OutMessage.audioAppend(base64: b64).jsonEncoded())
+        os_log("send append %d bytes (peak %d)", log: log, type: .info, pcm16.count, pcm16Peak(pcm16))
+    }
+
+    /// Returns the absolute-value peak amplitude of an Int16 LE PCM buffer.
+    /// Used purely for diagnostics — if peak is near zero we know the audio
+    /// is silent before it leaves the app.
+    private func pcm16Peak(_ data: Data) -> Int {
+        var peak: Int16 = 0
+        data.withUnsafeBytes { (ptr: UnsafeRawBufferPointer) in
+            let count = data.count / MemoryLayout<Int16>.size
+            let i16 = ptr.bindMemory(to: Int16.self)
+            for i in 0..<count {
+                let v = i16[i]
+                let absV = (v == Int16.min) ? Int16.max : abs(v)
+                if absV > peak { peak = absV }
+            }
+        }
+        return Int(peak)
     }
 
     func finishAndAwaitTranscript() async throws -> String {
         // If the server already errored or closed, surface that instead of
         // hitting a closed socket and reporting "not_connected".
-        if let err = earlyError { throw err }
+        if let err = earlyError {
+            os_log("finishAndAwaitTranscript bailing — earlyError=%{public}@", log: log, type: .error, err.code)
+            throw err
+        }
+        os_log("sending input_audio_buffer.commit", log: log, type: .info)
         try await transport.send(OutMessage.audioCommit.jsonEncoded())
+        os_log("commit sent, awaiting completed", log: log, type: .info)
         return try await withCheckedThrowingContinuation { cont in
             self.pendingTranscript = cont
         }
@@ -116,7 +151,11 @@ final class URLSessionWebSocketTransport: NSObject, RealtimeTransport, URLSessio
 
     func send(_ data: Data) async throws {
         guard let t = task else { throw RealtimeError(code: "not_connected", message: "") }
-        try await t.send(.data(data))
+        // OpenAI's Realtime API expects WebSocket text frames (opcode 0x1)
+        // for JSON control messages, not binary frames. URLSessionWebSocketTask's
+        // .data(...) sends binary; .string(...) sends text.
+        let s = String(data: data, encoding: .utf8) ?? ""
+        try await t.send(.string(s))
     }
 
     func close() {

@@ -9,30 +9,17 @@ enum OutMessage {
     func jsonEncoded() throws -> Data {
         switch self {
         case .sessionUpdate(let model, let language):
-            // GA Realtime API shape (verified live 2026-05-10):
-            //   { type: "session.update",
-            //     session: {
-            //       type: "transcription",
-            //       audio: { input: { format: {type, rate}, transcription: {...}, turn_detection: null } }
-            //     }
-            //   }
-            // The legacy beta shape ("transcription_session.update", flat
-            // input_audio_format string) returns "Model X is only available
-            // on the GA API" for gpt-realtime-whisper.
-            let body: [String: Any] = [
-                "type": "session.update",
-                "session": [
-                    "type": "transcription",
-                    "audio": [
-                        "input": [
-                            "format": ["type": "audio/pcm", "rate": 24000] as [String: Any],
-                            "transcription": ["model": model, "language": language] as [String: Any],
-                            "turn_detection": NSNull()
-                        ] as [String: Any]
-                    ] as [String: Any]
-                ] as [String: Any]
-            ]
-            return try JSONSerialization.data(withJSONObject: body)
+            // GA Realtime API shape (verified live 2026-05-10).
+            // Hand-crafted as a string because the live server returns a
+            // generic server_error for the same payload when it's serialized
+            // by JSONSerialization with arbitrary key order (or with escaped
+            // slashes). Node's JSON.stringify produced a working payload in
+            // a specific order; we reproduce it byte-for-byte. Inputs are
+            // controlled (model is a constant, language is one of zh/en/fr).
+            let escapedModel = model.replacingOccurrences(of: "\"", with: "\\\"")
+            let escapedLang = language.replacingOccurrences(of: "\"", with: "\\\"")
+            let json = "{\"type\":\"session.update\",\"session\":{\"type\":\"transcription\",\"audio\":{\"input\":{\"format\":{\"type\":\"audio/pcm\",\"rate\":24000},\"transcription\":{\"model\":\"\(escapedModel)\",\"language\":\"\(escapedLang)\"},\"turn_detection\":null}}}}"
+            return Data(json.utf8)
         case .audioAppend(let b64):
             return try JSONSerialization.data(withJSONObject: [
                 "type": "input_audio_buffer.append",

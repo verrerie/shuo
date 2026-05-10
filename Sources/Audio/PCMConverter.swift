@@ -29,7 +29,12 @@ final class PCMConverter {
         var error: NSError?
         let status = converter.convert(to: out, error: &error) { _, status in
             if fed {
-                status.pointee = .endOfStream
+                // For streaming use, return .noDataNow rather than .endOfStream.
+                // .endOfStream finalises the converter and subsequent convert()
+                // calls produce nothing, which manifested as only the very first
+                // tap buffer reaching the WS. .noDataNow keeps the converter
+                // alive between callbacks.
+                status.pointee = .noDataNow
                 return nil
             }
             fed = true

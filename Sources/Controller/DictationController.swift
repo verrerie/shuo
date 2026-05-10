@@ -1,4 +1,7 @@
 import Foundation
+import os.log
+
+private let ctrlLog = OSLog(subsystem: "app.shuo", category: "controller")
 
 protocol AudioCaptureProtocol: AnyObject {
     var onChunk: ((Data) -> Void)? { get set }
@@ -87,19 +90,27 @@ final class DictationController {
     }
 
     func stop() async throws {
-        guard state == .listening else { return }
+        os_log("stop entered, state=%{public}@", log: ctrlLog, type: .info, String(describing: state))
+        guard state == .listening else {
+            os_log("stop bailing — state is not .listening", log: ctrlLog, type: .info)
+            return
+        }
         state = .finalizing
         indicator.setState(.finalizing)
         audio.stop()
+        os_log("audio stopped, awaiting transcript", log: ctrlLog, type: .info)
 
         do {
             let text = try await realtime.finishAndAwaitTranscript()
+            os_log("transcript received, len=%d", log: ctrlLog, type: .info, text.count)
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty { paste.paste(trimmed) }
             logTurn(result: trimmed.isEmpty ? "ok:empty" : "ok")
         } catch let e as RealtimeError {
+            os_log("realtime error during stop: %{public}@", log: ctrlLog, type: .error, e.code)
             logTurn(result: "err:\(e.code)")
         } catch {
+            os_log("unknown error during stop: %{public}@", log: ctrlLog, type: .error, String(describing: error))
             logTurn(result: "err:unknown")
         }
 
@@ -121,6 +132,11 @@ final class DictationController {
     }
 
     private func handleChunk(_ data: Data) {
+        // Sometimes the AVAudioEngine tap fires with a 0-frame buffer at the
+        // very start; sending an empty input_audio_buffer.append makes the
+        // server reject the whole turn ("Expected base64-encoded audio bytes
+        // ... but got empty bytes"). Filter zero-byte chunks here.
+        guard !data.isEmpty else { return }
         bytesSent += data.count
         Task { try? await realtime.appendAudio(data) }
     }
