@@ -41,11 +41,13 @@ final class IndicatorWindow {
         // orderFrontRegardless trips an assertion in clearDisplayAffinityForWindow.
         panel.alphaValue = 0
         if let screen = NSScreen.main {
-            // Hug the bottom edge of the screen's usable area (just above the
-            // Dock if it's shown; at the very bottom if it auto-hides).
+            // Hug the absolute bottom edge of the display (frame, not
+            // visibleFrame — visibleFrame stops above the Dock and was leaving
+            // a visible gap). Floating-level + ignoresMouseEvents means we
+            // overlay the Dock without interfering with it.
             let bottomInset: CGFloat = 2
             panel.setFrameOrigin(NSPoint(x: screen.frame.midX - panelSize.width / 2,
-                                         y: screen.visibleFrame.minY + bottomInset))
+                                         y: screen.frame.minY + bottomInset))
         }
         panel.orderFrontRegardless()
     }
