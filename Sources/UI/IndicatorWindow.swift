@@ -19,6 +19,10 @@ final class IndicatorWindow {
         panel.level = .statusBar
         panel.ignoresMouseEvents = true
         panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
+        // macOS 26 NSWMWindowCoordinator crashes inside the window-tabbing
+        // setup path when ordering a borderless panel front; explicitly opt
+        // out of tabbing so AppKit skips that path entirely.
+        panel.tabbingMode = .disallowed
         panel.contentView = hosting
         hosting.frame = NSRect(x: 0, y: 0, width: 60, height: 30)
     }
