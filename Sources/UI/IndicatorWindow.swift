@@ -8,20 +8,26 @@ final class IndicatorWindow {
 
     init() {
         hosting = NSHostingView(rootView: AnyView(IndicatorView(state: .listening)))
+        // Conventional HUD panel: use the proper utility/hud style instead of
+        // borderless+statusBar. macOS 26's NSWMWindowCoordinator crashes when
+        // making a `.borderless` `NSPanel` at `.statusBar` level visible.
         panel = NSPanel(
             contentRect: NSRect(x: 0, y: 0, width: 60, height: 30),
-            styleMask: [.borderless, .nonactivatingPanel],
+            styleMask: [.titled, .nonactivatingPanel, .utilityWindow, .hudWindow],
             backing: .buffered, defer: false
         )
+        panel.titleVisibility = .hidden
+        panel.titlebarAppearsTransparent = true
+        panel.standardWindowButton(.closeButton)?.isHidden = true
+        panel.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        panel.standardWindowButton(.zoomButton)?.isHidden = true
+        panel.isMovable = false
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
-        panel.level = .statusBar
+        panel.level = .floating
         panel.ignoresMouseEvents = true
-        panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle, .fullScreenAuxiliary]
-        // macOS 26 NSWMWindowCoordinator crashes inside the window-tabbing
-        // setup path when ordering a borderless panel front; explicitly opt
-        // out of tabbing so AppKit skips that path entirely.
+        panel.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
         panel.tabbingMode = .disallowed
         panel.contentView = hosting
         hosting.frame = NSRect(x: 0, y: 0, width: 60, height: 30)
