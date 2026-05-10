@@ -26,8 +26,13 @@ final class IndicatorWindow {
     func show(state: IndicatorState) {
         currentState = state
         hosting.rootView = AnyView(IndicatorView(state: state))
-        positionAtCursorScreen()
+        // Order on-screen first so the panel has a screen affinity before any
+        // frame mutation. Calling setFrame(..., display:true) on a panel that
+        // has never been displayed crashes inside NSWMWindowCoordinator on
+        // macOS 26 (the affinity-clear path tries to read state that doesn't
+        // exist yet).
         panel.orderFrontRegardless()
+        positionAtCursorScreen()
     }
 
     func hide() {
@@ -46,6 +51,8 @@ final class IndicatorWindow {
         let bottomInset: CGFloat = 24
         let x = screen.frame.midX - frame.width / 2
         let y = screen.visibleFrame.minY + bottomInset
-        panel.setFrame(NSRect(x: x, y: y, width: frame.width, height: frame.height), display: true)
+        // setFrameOrigin avoids the resize path inside NSWMWindowCoordinator
+        // that crashes on macOS 26; size never changes after init anyway.
+        panel.setFrameOrigin(NSPoint(x: x, y: y))
     }
 }
