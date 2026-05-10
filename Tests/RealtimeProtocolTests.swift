@@ -4,16 +4,20 @@ import XCTest
 
 final class RealtimeProtocolTests: XCTestCase {
 
-    func test_session_update_encoding_uses_pcm16_and_no_vad() throws {
+    func test_session_update_uses_ga_shape_and_disables_vad() throws {
         let msg = OutMessage.sessionUpdate(model: "gpt-realtime-whisper", language: "fr")
         let json = try jsonObject(from: msg)
-        XCTAssertEqual(json["type"] as? String, "transcription_session.update")
+        XCTAssertEqual(json["type"] as? String, "session.update")
         let session = json["session"] as? [String: Any]
-        XCTAssertEqual(session?["input_audio_format"] as? String, "pcm16")
-        XCTAssertNil(session?["turn_detection"], "turn_detection should be null/absent")
-        let trans = session?["input_audio_transcription"] as? [String: Any]
+        XCTAssertEqual(session?["type"] as? String, "transcription")
+        let input = (session?["audio"] as? [String: Any])?["input"] as? [String: Any]
+        let format = input?["format"] as? [String: Any]
+        XCTAssertEqual(format?["type"] as? String, "audio/pcm")
+        XCTAssertEqual(format?["rate"] as? Int, 24000)
+        let trans = input?["transcription"] as? [String: Any]
         XCTAssertEqual(trans?["model"] as? String, "gpt-realtime-whisper")
         XCTAssertEqual(trans?["language"] as? String, "fr")
+        XCTAssertTrue(input?["turn_detection"] is NSNull)
     }
 
     func test_audio_append_encoding() throws {

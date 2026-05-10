@@ -29,7 +29,7 @@ final class RealtimeClientTests: XCTestCase {
         XCTAssertTrue(fake.connectCalled)
         XCTAssertEqual(fake.sentMessages.count, 1)
         let json = try JSONSerialization.jsonObject(with: fake.sentMessages[0]) as! [String: Any]
-        XCTAssertEqual(json["type"] as? String, "transcription_session.update")
+        XCTAssertEqual(json["type"] as? String, "session.update")
     }
 
     func test_appendAudio_sends_base64_chunk() async throws {

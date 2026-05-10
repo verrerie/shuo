@@ -1,4 +1,7 @@
 import Foundation
+import os.log
+
+private let log = OSLog(subsystem: "app.shuo", category: "realtime")
 
 protocol RealtimeTransport: AnyObject {
     var onMessage: ((Data) -> Void)? { get set }
@@ -20,6 +23,7 @@ final class RealtimeClient {
     private let model = "gpt-realtime-whisper"
 
     private var pendingTranscript: CheckedContinuation<String, Error>?
+    private var earlyError: RealtimeError?
 
     init(transport: RealtimeTransport, apiKey: String) {
         self.transport = transport
@@ -29,9 +33,11 @@ final class RealtimeClient {
     }
 
     func start(language: String) async throws {
+        // GA Realtime API: do NOT send OpenAI-Beta. The realtime=v1 header
+        // pins us to the legacy beta endpoint, which doesn't have
+        // gpt-realtime-whisper.
         try await transport.connect(url: url, headers: [
-            "Authorization": "Bearer \(apiKey)",
-            "OpenAI-Beta": "realtime=v1"
+            "Authorization": "Bearer \(apiKey)"
         ])
         try await transport.send(OutMessage.sessionUpdate(model: model, language: language).jsonEncoded())
     }
@@ -42,6 +48,9 @@ final class RealtimeClient {
     }
 
     func finishAndAwaitTranscript() async throws -> String {
+        // If the server already errored or closed, surface that instead of
+        // hitting a closed socket and reporting "not_connected".
+        if let err = earlyError { throw err }
         try await transport.send(OutMessage.audioCommit.jsonEncoded())
         return try await withCheckedThrowingContinuation { cont in
             self.pendingTranscript = cont
@@ -57,13 +66,20 @@ final class RealtimeClient {
     }
 
     private func handleIncoming(_ data: Data) {
+        // Log every server message so we can see what's going on in Console.
+        if let s = String(data: data, encoding: .utf8) {
+            os_log("recv %{public}@", log: log, type: .info, s)
+        }
         guard let event = try? RealtimeEvent.decode(data) else { return }
         switch event {
         case .completed(let text):
             if let p = pendingTranscript { pendingTranscript = nil; p.resume(returning: text) }
             transport.close()
         case .error(let code, let msg):
-            if let p = pendingTranscript { pendingTranscript = nil; p.resume(throwing: RealtimeError(code: code, message: msg)) }
+            let err = RealtimeError(code: code, message: msg)
+            earlyError = err
+            os_log("server error code=%{public}@ message=%{public}@", log: log, type: .error, code, msg)
+            if let p = pendingTranscript { pendingTranscript = nil; p.resume(throwing: err) }
             transport.close()
         case .delta, .unknown:
             break
@@ -71,6 +87,8 @@ final class RealtimeClient {
     }
 
     private func handleClose(code: Int) {
+        os_log("ws closed code=%d", log: log, type: .info, code)
+        if earlyError == nil { earlyError = RealtimeError(code: "ws_closed_\(code)", message: "") }
         if let p = pendingTranscript {
             pendingTranscript = nil
             p.resume(throwing: RealtimeError(code: "ws_closed_\(code)", message: ""))

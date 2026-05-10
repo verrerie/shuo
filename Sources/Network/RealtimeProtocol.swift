@@ -9,16 +9,28 @@ enum OutMessage {
     func jsonEncoded() throws -> Data {
         switch self {
         case .sessionUpdate(let model, let language):
+            // GA Realtime API shape (verified live 2026-05-10):
+            //   { type: "session.update",
+            //     session: {
+            //       type: "transcription",
+            //       audio: { input: { format: {type, rate}, transcription: {...}, turn_detection: null } }
+            //     }
+            //   }
+            // The legacy beta shape ("transcription_session.update", flat
+            // input_audio_format string) returns "Model X is only available
+            // on the GA API" for gpt-realtime-whisper.
             let body: [String: Any] = [
-                "type": "transcription_session.update",
+                "type": "session.update",
                 "session": [
-                    "input_audio_format": "pcm16",
-                    "input_audio_transcription": [
-                        "model": model,
-                        "language": language
-                    ]
-                    // turn_detection intentionally omitted = null on server
-                ]
+                    "type": "transcription",
+                    "audio": [
+                        "input": [
+                            "format": ["type": "audio/pcm", "rate": 24000] as [String: Any],
+                            "transcription": ["model": model, "language": language] as [String: Any],
+                            "turn_detection": NSNull()
+                        ] as [String: Any]
+                    ] as [String: Any]
+                ] as [String: Any]
             ]
             return try JSONSerialization.data(withJSONObject: body)
         case .audioAppend(let b64):
