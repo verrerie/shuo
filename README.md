@@ -1,5 +1,7 @@
 # Shuo
 
+[![CI](https://github.com/verrerie/shuo/actions/workflows/ci.yml/badge.svg)](https://github.com/verrerie/shuo/actions/workflows/ci.yml)
+
 Voice dictation for macOS, powered by OpenAI's `gpt-realtime-whisper` (≈ $0.017 / min).
 
 **Double-tap Left-Option, speak, single-tap to stop.** The transcript is pasted into whatever text field is focused — Notes, Slack, Safari, Terminal, anything that accepts ⌘V.
@@ -98,7 +100,7 @@ xcodegen generate
 xcodebuild -project Shuo.xcodeproj -scheme Shuo -destination 'platform=macOS' test
 ```
 
-CI is not set up — tests run locally.
+CI runs the same command on every push to `main` and every pull request via GitHub Actions (`.github/workflows/ci.yml`).
 
 ## License
 
