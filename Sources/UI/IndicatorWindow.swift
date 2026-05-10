@@ -31,22 +31,29 @@ final class IndicatorWindow {
         panel.tabbingMode = .disallowed
         panel.contentView = hosting
         hosting.frame = NSRect(x: 0, y: 0, width: 60, height: 30)
+
+        // Order the panel on-screen ONCE here. Subsequent show()/hide() calls
+        // toggle alphaValue instead of orderOut/orderFront. Reason: macOS 26's
+        // NSWMWindowCoordinator crashes the second time a panel is ordered
+        // front — orderOut clears its screen affinity, and the next
+        // orderFrontRegardless trips an assertion in clearDisplayAffinityForWindow.
+        panel.alphaValue = 0
+        if let screen = NSScreen.main {
+            panel.setFrameOrigin(NSPoint(x: screen.frame.midX - panel.frame.width / 2,
+                                         y: screen.visibleFrame.minY + 24))
+        }
+        panel.orderFrontRegardless()
     }
 
     func show(state: IndicatorState) {
         currentState = state
         hosting.rootView = AnyView(IndicatorView(state: state))
-        // Order on-screen first so the panel has a screen affinity before any
-        // frame mutation. Calling setFrame(..., display:true) on a panel that
-        // has never been displayed crashes inside NSWMWindowCoordinator on
-        // macOS 26 (the affinity-clear path tries to read state that doesn't
-        // exist yet).
-        panel.orderFrontRegardless()
         positionAtCursorScreen()
+        panel.alphaValue = 1
     }
 
     func hide() {
-        panel.orderOut(nil)
+        panel.alphaValue = 0
     }
 
     func setState(_ state: IndicatorState) {
