@@ -58,7 +58,9 @@ final class HotkeyMonitor {
     private func handle(event: CGEvent) {
         guard event.getIntegerValueField(.keyboardEventKeycode) == keycode else { return }
         let now = ProcessInfo.processInfo.systemUptime
-        let isPressed = (event.flags.rawValue != 0)
+        // Check the Option-mask bit specifically — using `flags.rawValue != 0`
+        // confuses other modifiers (Caps Lock, Shift) for an Option press.
+        let isPressed = event.flags.contains(.maskAlternate)
         let action = isPressed ? detector.onPress(at: now) : detector.onRelease(at: now)
         if let action {
             DispatchQueue.main.async { self.onAction(action) }
