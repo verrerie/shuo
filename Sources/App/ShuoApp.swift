@@ -1,5 +1,5 @@
-// Sources/App/ShuoApp.swift
 import SwiftUI
+import AppKit
 
 @main
 struct ShuoApp: App {
@@ -10,7 +10,15 @@ struct ShuoApp: App {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var coordinator: AppCoordinator?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // wired up in Task 15
+        do {
+            let c = try AppCoordinator()
+            coordinator = c
+            c.start()
+        } catch {
+            NSAlert(error: error).runModal()
+        }
     }
 }
