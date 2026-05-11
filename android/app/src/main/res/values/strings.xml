@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Shuo</string>
+    <string name="subtype_voice">Voice</string>
+    <string name="settings_api_key_hint">OpenAI API key (sk-…)</string>
+    <string name="settings_save">Save</string>
+    <string name="error_no_api_key">Open Shuo settings and enter your API key</string>
+    <string name="error_cap_reached">Daily cap reached</string>
+    <string name="error_api_rejected">API key rejected — open Settings</string>
+    <string name="error_generic">Error — check API key</string>
+</resources>
