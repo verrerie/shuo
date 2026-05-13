@@ -521,6 +521,7 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -554,7 +555,7 @@ class AudioCapture {
         recorder.startRecording()
         try {
             val chunk = ByteArray(CHUNK_SIZE)
-            while (isActive) {
+            while (currentCoroutineContext().isActive) {
                 val bytesRead = recorder.read(chunk, 0, chunk.size)
                 if (bytesRead > 0) emit(chunk.copyOf(bytesRead))
             }
