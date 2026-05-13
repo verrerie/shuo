@@ -331,12 +331,15 @@ import java.util.Base64
 class RealtimeClientTest {
 
     @Test
-    fun `buildSessionUpdate contains correct type and language`() {
+    fun `buildSessionUpdate matches GA Realtime API shape`() {
         val json = RealtimeClient.buildSessionUpdateJson("zh")
-        assertTrue(json.contains("\"type\":\"transcription_session.update\""))
+        assertTrue(json.contains("\"type\":\"session.update\""))
+        assertTrue(json.contains("\"type\":\"transcription\""))
         assertTrue(json.contains("\"language\":\"zh\""))
         assertTrue(json.contains("\"model\":\"gpt-realtime-whisper\""))
-        assertTrue(json.contains("\"input_audio_format\":\"pcm16\""))
+        assertTrue(json.contains("\"type\":\"audio/pcm\""))
+        assertTrue(json.contains("\"rate\":24000"))
+        assertTrue(json.contains("\"type\":\"near_field\""))
         assertTrue(json.contains("\"turn_detection\":null"))
     }
 
@@ -442,16 +445,29 @@ class RealtimeClient(private val apiKey: String) {
     }
 
     companion object {
+        // GA Realtime API shape — matches the macOS Swift implementation
+        // (see Sources/Network/RealtimeProtocol.swift in the same repo).
         fun buildSessionUpdateJson(language: String): String =
             buildJsonObject {
-                put("type", "transcription_session.update")
+                put("type", "session.update")
                 putJsonObject("session") {
-                    put("input_audio_format", "pcm16")
-                    putJsonObject("input_audio_transcription") {
-                        put("model", "gpt-realtime-whisper")
-                        put("language", language)
+                    put("type", "transcription")
+                    putJsonObject("audio") {
+                        putJsonObject("input") {
+                            putJsonObject("format") {
+                                put("type", "audio/pcm")
+                                put("rate", 24000)
+                            }
+                            putJsonObject("transcription") {
+                                put("model", "gpt-realtime-whisper")
+                                put("language", language)
+                            }
+                            putJsonObject("noise_reduction") {
+                                put("type", "near_field")
+                            }
+                            put("turn_detection", JsonNull)
+                        }
                     }
-                    put("turn_detection", JsonNull)
                 }
             }.toString()
 
