@@ -274,7 +274,7 @@ class RealtimeEventTest {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.network.RealtimeEventTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeEventTest"
 ```
 
 Expected: FAIL — `RealtimeEvent` not found.
@@ -296,7 +296,7 @@ sealed class RealtimeEvent {
 - [ ] **Step 4: Run test to verify it passes**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.network.RealtimeEventTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeEventTest"
 ```
 
 Expected: PASS (4 tests).
@@ -360,7 +360,7 @@ class RealtimeClientTest {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.network.RealtimeClientTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeClientTest"
 ```
 
 Expected: FAIL — `RealtimeClient` not found.
@@ -474,7 +474,7 @@ class RealtimeClient(private val apiKey: String) {
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.network.RealtimeClientTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeClientTest"
 ```
 
 Expected: PASS (3 tests).
@@ -653,7 +653,7 @@ class InMemoryConfigStore {
 - [ ] **Step 2: Run tests to verify they fail**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.settings.ConfigStoreTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.settings.ConfigStoreTest"
 ```
 
 Expected: FAIL — `InMemoryConfigStore` not found.
@@ -730,7 +730,7 @@ class ConfigStore(context: Context) {
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.settings.ConfigStoreTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.settings.ConfigStoreTest"
 ```
 
 Expected: PASS (4 tests).
@@ -862,7 +862,7 @@ class DictationControllerTest {
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.controller.DictationControllerTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.controller.DictationControllerTest"
 ```
 
 Expected: FAIL — `DictationController` not found.
@@ -958,7 +958,7 @@ class DictationController(
 - [ ] **Step 4: Run tests to verify they pass**
 
 ```bash
-cd android && ./gradlew :app:test --tests "app.shuo.controller.DictationControllerTest"
+cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.controller.DictationControllerTest"
 ```
 
 Expected: PASS (9 tests).
