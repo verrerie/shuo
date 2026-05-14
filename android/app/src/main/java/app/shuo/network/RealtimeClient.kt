@@ -22,13 +22,13 @@ class RealtimeClient(private val apiKey: String) {
             .build()
 
         val listener = object : WebSocketListener() {
-            override fun onOpen(ws: WebSocket, response: Response) {
-                webSocket = ws
+            override fun onOpen(webSocket: WebSocket, response: Response) {
+                this@RealtimeClient.webSocket = webSocket
                 trySend(RealtimeEvent.Connected)
-                ws.send(buildSessionUpdateJson(language))
+                webSocket.send(buildSessionUpdateJson(language))
             }
 
-            override fun onMessage(ws: WebSocket, text: String) {
+            override fun onMessage(webSocket: WebSocket, text: String) {
                 val json = Json.parseToJsonElement(text).jsonObject
                 when (json["type"]?.jsonPrimitive?.content) {
                     "conversation.item.input_audio_transcription.completed" -> {
@@ -47,12 +47,12 @@ class RealtimeClient(private val apiKey: String) {
                 }
             }
 
-            override fun onClosing(ws: WebSocket, code: Int, reason: String) {
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
                 trySend(RealtimeEvent.Closed(code))
                 close()
             }
 
-            override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 // Prefer the HTTP status code when the WebSocket upgrade is
                 // rejected — that's where 401 (bad API key) surfaces. Falls
                 // back to the throwable message for genuine network errors.
