@@ -66,7 +66,7 @@ android/
 - Create: `android/app/src/main/res/xml/input_method.xml`
 - Create: `android/app/src/main/res/values/strings.xml`
 
-- [ ] **Step 1: Create `android/settings.gradle.kts`**
+- [x] **Step 1: Create `android/settings.gradle.kts`**
 
 ```kotlin
 pluginManagement {
@@ -85,7 +85,7 @@ rootProject.name = "shuo-android"
 include(":app")
 ```
 
-- [ ] **Step 2: Create `android/build.gradle.kts`**
+- [x] **Step 2: Create `android/build.gradle.kts`**
 
 ```kotlin
 plugins {
@@ -95,14 +95,14 @@ plugins {
 }
 ```
 
-- [ ] **Step 3: Create `android/gradle.properties`**
+- [x] **Step 3: Create `android/gradle.properties`**
 
 ```properties
 android.useAndroidX=true
 kotlin.code.style=official
 ```
 
-- [ ] **Step 4: Create `android/app/build.gradle.kts`**
+- [x] **Step 4: Create `android/app/build.gradle.kts`**
 
 ```kotlin
 plugins {
@@ -143,7 +143,7 @@ dependencies {
 }
 ```
 
-- [ ] **Step 5: Create `android/app/src/main/AndroidManifest.xml`**
+- [x] **Step 5: Create `android/app/src/main/AndroidManifest.xml`**
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -182,7 +182,7 @@ dependencies {
 </manifest>
 ```
 
-- [ ] **Step 6: Create `android/app/src/main/res/xml/input_method.xml`**
+- [x] **Step 6: Create `android/app/src/main/res/xml/input_method.xml`**
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -194,7 +194,7 @@ dependencies {
 </input-method>
 ```
 
-- [ ] **Step 7: Create `android/app/src/main/res/values/strings.xml`**
+- [x] **Step 7: Create `android/app/src/main/res/values/strings.xml`**
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -210,7 +210,7 @@ dependencies {
 </resources>
 ```
 
-- [ ] **Step 8: Verify the project builds**
+- [x] **Step 8: Verify the project builds**
 
 ```bash
 cd android && ./gradlew assembleDebug
@@ -218,7 +218,7 @@ cd android && ./gradlew assembleDebug
 
 Expected: `BUILD SUCCESSFUL`. Fix any dependency resolution errors before continuing.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add android/
@@ -233,7 +233,7 @@ git commit -m "chore(android): scaffold Android project"
 - Create: `android/app/src/main/java/app/shuo/network/RealtimeEvent.kt`
 - Create: `android/app/src/test/java/app/shuo/network/RealtimeEventTest.kt`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 `android/app/src/test/java/app/shuo/network/RealtimeEventTest.kt`:
 
@@ -271,7 +271,7 @@ class RealtimeEventTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeEventTest"
@@ -279,7 +279,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.Realtim
 
 Expected: FAIL — `RealtimeEvent` not found.
 
-- [ ] **Step 3: Create `android/app/src/main/java/app/shuo/network/RealtimeEvent.kt`**
+- [x] **Step 3: Create `android/app/src/main/java/app/shuo/network/RealtimeEvent.kt`**
 
 ```kotlin
 package app.shuo.network
@@ -293,7 +293,7 @@ sealed class RealtimeEvent {
 }
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [x] **Step 4: Run test to verify it passes**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeEventTest"
@@ -301,7 +301,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.Realtim
 
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/network/RealtimeEvent.kt \
@@ -317,7 +317,7 @@ git commit -m "feat(android): add RealtimeEvent sealed class"
 - Create: `android/app/src/main/java/app/shuo/network/RealtimeClient.kt`
 - Create: `android/app/src/test/java/app/shuo/network/RealtimeClientTest.kt`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `android/app/src/test/java/app/shuo/network/RealtimeClientTest.kt`:
 
@@ -360,7 +360,7 @@ class RealtimeClientTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeClientTest"
@@ -368,7 +368,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.Realtim
 
 Expected: FAIL — `RealtimeClient` not found.
 
-- [ ] **Step 3: Create `android/app/src/main/java/app/shuo/network/RealtimeClient.kt`**
+- [x] **Step 3: Create `android/app/src/main/java/app/shuo/network/RealtimeClient.kt`**
 
 ```kotlin
 package app.shuo.network
@@ -487,7 +487,7 @@ class RealtimeClient(private val apiKey: String) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.RealtimeClientTest"
@@ -495,7 +495,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.network.Realtim
 
 Expected: PASS (3 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/network/RealtimeClient.kt \
@@ -512,7 +512,7 @@ git commit -m "feat(android): add RealtimeClient with OkHttp WebSocket"
 
 `AudioRecord` requires a real device to test. We define the interface and verify it compiles; device testing happens at integration.
 
-- [ ] **Step 1: Create `android/app/src/main/java/app/shuo/audio/AudioCapture.kt`**
+- [x] **Step 1: Create `android/app/src/main/java/app/shuo/audio/AudioCapture.kt`**
 
 ```kotlin
 package app.shuo.audio
@@ -567,7 +567,7 @@ class AudioCapture {
 }
 ```
 
-- [ ] **Step 2: Verify it compiles**
+- [x] **Step 2: Verify it compiles**
 
 ```bash
 cd android && ./gradlew :app:compileDebugKotlin
@@ -575,7 +575,7 @@ cd android && ./gradlew :app:compileDebugKotlin
 
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/audio/AudioCapture.kt
@@ -590,7 +590,7 @@ git commit -m "feat(android): add AudioCapture (AudioRecord → Flow<ByteArray>)
 - Create: `android/app/src/main/java/app/shuo/settings/ConfigStore.kt`
 - Create: `android/app/src/test/java/app/shuo/settings/ConfigStoreTest.kt`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `android/app/src/test/java/app/shuo/settings/ConfigStoreTest.kt`:
 
@@ -667,7 +667,7 @@ class InMemoryConfigStore {
 }
 ```
 
-- [ ] **Step 2: Run tests to verify they fail**
+- [x] **Step 2: Run tests to verify they fail**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.settings.ConfigStoreTest"
@@ -675,7 +675,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.settings.Config
 
 Expected: FAIL — `InMemoryConfigStore` not found.
 
-- [ ] **Step 3: Move the test double to the test file and create `ConfigStore.kt`**
+- [x] **Step 3: Move the test double to the test file and create `ConfigStore.kt`**
 
 The test file already contains `InMemoryConfigStore`. Now create the production class:
 
@@ -744,7 +744,7 @@ class ConfigStore(context: Context) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.settings.ConfigStoreTest"
@@ -752,7 +752,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.settings.Config
 
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/settings/ConfigStore.kt \
@@ -768,7 +768,7 @@ git commit -m "feat(android): add ConfigStore with encrypted API key storage"
 - Create: `android/app/src/main/java/app/shuo/controller/DictationController.kt`
 - Create: `android/app/src/test/java/app/shuo/controller/DictationControllerTest.kt`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 `android/app/src/test/java/app/shuo/controller/DictationControllerTest.kt`:
 
@@ -887,7 +887,7 @@ class DictationControllerTest {
 }
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [x] **Step 2: Run test to verify it fails**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.controller.DictationControllerTest"
@@ -895,7 +895,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.controller.Dict
 
 Expected: FAIL — `DictationController` not found.
 
-- [ ] **Step 3: Create `android/app/src/main/java/app/shuo/controller/DictationController.kt`**
+- [x] **Step 3: Create `android/app/src/main/java/app/shuo/controller/DictationController.kt`**
 
 ```kotlin
 package app.shuo.controller
@@ -982,7 +982,7 @@ class DictationController(
 }
 ```
 
-- [ ] **Step 4: Run tests to verify they pass**
+- [x] **Step 4: Run tests to verify they pass**
 
 ```bash
 cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.controller.DictationControllerTest"
@@ -990,7 +990,7 @@ cd android && ./gradlew :app:testDebugUnitTest --tests "app.shuo.controller.Dict
 
 Expected: PASS (9 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/controller/DictationController.kt \
@@ -1006,7 +1006,7 @@ git commit -m "feat(android): add DictationController state machine"
 - Create: `android/app/src/main/res/layout/keyboard_view.xml`
 - Create: `android/app/src/main/java/app/shuo/ime/KeyboardView.kt`
 
-- [ ] **Step 1: Create `android/app/src/main/res/layout/keyboard_view.xml`**
+- [x] **Step 1: Create `android/app/src/main/res/layout/keyboard_view.xml`**
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1061,7 +1061,7 @@ git commit -m "feat(android): add DictationController state machine"
 </FrameLayout>
 ```
 
-- [ ] **Step 2: Create the circle drawable**
+- [x] **Step 2: Create the circle drawable**
 
 `android/app/src/main/res/drawable/circle_indicator.xml`:
 
@@ -1073,7 +1073,7 @@ git commit -m "feat(android): add DictationController state machine"
 </shape>
 ```
 
-- [ ] **Step 3: Create `android/app/src/main/java/app/shuo/ime/KeyboardView.kt`**
+- [x] **Step 3: Create `android/app/src/main/java/app/shuo/ime/KeyboardView.kt`**
 
 ```kotlin
 package app.shuo.ime
@@ -1169,7 +1169,7 @@ class KeyboardView @JvmOverloads constructor(
 }
 ```
 
-- [ ] **Step 4: Verify it compiles**
+- [x] **Step 4: Verify it compiles**
 
 ```bash
 cd android && ./gradlew :app:compileDebugKotlin
@@ -1177,7 +1177,7 @@ cd android && ./gradlew :app:compileDebugKotlin
 
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/ime/KeyboardView.kt \
@@ -1193,7 +1193,7 @@ git commit -m "feat(android): add KeyboardView with pulse animation"
 **Files:**
 - Create: `android/app/src/main/java/app/shuo/controller/Logger.kt`
 
-- [ ] **Step 1: Create `android/app/src/main/java/app/shuo/controller/Logger.kt`**
+- [x] **Step 1: Create `android/app/src/main/java/app/shuo/controller/Logger.kt`**
 
 ```kotlin
 package app.shuo.controller
@@ -1212,7 +1212,7 @@ class Logger(context: Context) {
 }
 ```
 
-- [ ] **Step 2: Verify it compiles**
+- [x] **Step 2: Verify it compiles**
 
 ```bash
 cd android && ./gradlew :app:compileDebugKotlin
@@ -1220,7 +1220,7 @@ cd android && ./gradlew :app:compileDebugKotlin
 
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/controller/Logger.kt
@@ -1234,7 +1234,7 @@ git commit -m "feat(android): add Logger"
 **Files:**
 - Create: `android/app/src/main/java/app/shuo/ime/ShuoIME.kt`
 
-- [ ] **Step 1: Create `android/app/src/main/java/app/shuo/ime/ShuoIME.kt`**
+- [x] **Step 1: Create `android/app/src/main/java/app/shuo/ime/ShuoIME.kt`**
 
 ```kotlin
 package app.shuo.ime
@@ -1333,7 +1333,7 @@ class ShuoIME : InputMethodService() {
 
 > **Note on audio forwarding:** The `connectAndReceive` lambda starts the audio capture and forwards chunks to the client while the controller is in `Recording` state. When the controller transitions to `Finalizing` (via `stop()`), `commit()` is sent. This mirrors the macOS DictationController's coordination pattern.
 
-- [ ] **Step 2: Verify it compiles**
+- [x] **Step 2: Verify it compiles**
 
 ```bash
 cd android && ./gradlew :app:compileDebugKotlin
@@ -1341,7 +1341,7 @@ cd android && ./gradlew :app:compileDebugKotlin
 
 Expected: `BUILD SUCCESSFUL`. Fix any import errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/ime/ShuoIME.kt
@@ -1356,7 +1356,7 @@ git commit -m "feat(android): add ShuoIME InputMethodService"
 - Create: `android/app/src/main/res/layout/activity_settings.xml`
 - Create: `android/app/src/main/java/app/shuo/settings/SettingsActivity.kt`
 
-- [ ] **Step 1: Create `android/app/src/main/res/layout/activity_settings.xml`**
+- [x] **Step 1: Create `android/app/src/main/res/layout/activity_settings.xml`**
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1427,7 +1427,7 @@ git commit -m "feat(android): add ShuoIME InputMethodService"
 </LinearLayout>
 ```
 
-- [ ] **Step 2: Add the languages array resource**
+- [x] **Step 2: Add the languages array resource**
 
 `android/app/src/main/res/values/arrays.xml`:
 
@@ -1442,7 +1442,7 @@ git commit -m "feat(android): add ShuoIME InputMethodService"
 </resources>
 ```
 
-- [ ] **Step 3: Create `android/app/src/main/java/app/shuo/settings/SettingsActivity.kt`**
+- [x] **Step 3: Create `android/app/src/main/java/app/shuo/settings/SettingsActivity.kt`**
 
 ```kotlin
 package app.shuo.settings
@@ -1496,7 +1496,7 @@ class SettingsActivity : AppCompatActivity() {
 }
 ```
 
-- [ ] **Step 4: Verify it compiles**
+- [x] **Step 4: Verify it compiles**
 
 ```bash
 cd android && ./gradlew :app:compileDebugKotlin
@@ -1504,7 +1504,7 @@ cd android && ./gradlew :app:compileDebugKotlin
 
 Expected: `BUILD SUCCESSFUL`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add android/app/src/main/java/app/shuo/settings/SettingsActivity.kt \
@@ -1517,7 +1517,7 @@ git commit -m "feat(android): add SettingsActivity"
 
 ## Task 11: Full Build and Device Smoke Test
 
-- [ ] **Step 1: Build a debug APK**
+- [x] **Step 1: Build a debug APK**
 
 ```bash
 cd android && ./gradlew assembleDebug
@@ -1525,7 +1525,7 @@ cd android && ./gradlew assembleDebug
 
 Expected: `BUILD SUCCESSFUL`. APK at `app/build/outputs/apk/debug/app-debug.apk`.
 
-- [ ] **Step 2: Run all unit tests**
+- [x] **Step 2: Run all unit tests**
 
 ```bash
 cd android && ./gradlew :app:test
@@ -1533,13 +1533,13 @@ cd android && ./gradlew :app:test
 
 Expected: All tests pass (≥ 16 tests).
 
-- [ ] **Step 3: Install on device or emulator**
+- [x] **Step 3: Install on device or emulator**
 
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-- [ ] **Step 4: Smoke test on device**
+- [x] **Step 4: Smoke test on device**
 
 1. Open Shuo app → enter a real OpenAI API key → tap Save.
 2. Go to Settings → General management → On-screen keyboards → enable Shuo.
@@ -1552,9 +1552,39 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 9. Verify keyboard switches back to your previous keyboard automatically.
 10. Test language cycle: tap `zh` → becomes `en` → tap again → `fr` → tap → `zh`.
 
-- [ ] **Step 5: Final commit**
+- [x] **Step 5: Final commit**
 
 ```bash
 git add android/
 git commit -m "feat(android): Shuo Android IME — complete implementation"
 ```
+
+---
+
+## Implementation Notes (post-execution)
+
+Device smoke test passed on 2026-05-14 — Chinese transcription, language
+cycle, and auto-switch-back all verified on a real Android phone.
+
+Bugs discovered during smoke testing:
+- **OpenAI-Beta header was wrong** — sending `OpenAI-Beta: realtime=v1`
+  pinned the WebSocket to the legacy beta endpoint, which doesn't have
+  `gpt-realtime-whisper`. macOS Swift code already documents this; the
+  Android implementation was missing the warning. Fixed in commit
+  `d803615` by removing the header entirely (Authorization is sufficient).
+- **401 errors were unreadable** — OkHttp's `onFailure` reports a free-form
+  throwable message rather than the HTTP status code, so bad API keys
+  showed "Error — check API key" (generic) instead of "API key rejected".
+  Fixed by reading `response.code` first in `onFailure`.
+
+Plan-vs-code deviations (already sync'd into this doc as commits landed):
+- ConfigStore uses `MasterKeys` (security-crypto 1.0.0), not `MasterKey`
+  (1.1.0-alpha — unstable).
+- `DictationControllerTest` adds `Dispatchers.setMain` scaffolding —
+  the controller eagerly creates a scope on `Main`, which is unbound
+  on JVM unit tests.
+- Error-code-to-string mapping lives in `KeyboardView.errorStringRes`,
+  not in the controller — controller stays code-agnostic.
+- `ShuoIME` uses `state.drop(1)` to skip the StateFlow's initial Idle
+  emission so `switchToPreviousInputMethod()` doesn't fire before
+  `start()` runs.
