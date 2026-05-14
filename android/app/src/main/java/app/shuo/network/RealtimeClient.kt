@@ -13,10 +13,12 @@ class RealtimeClient(private val apiKey: String) {
     private var webSocket: WebSocket? = null
 
     fun connect(language: String): Flow<RealtimeEvent> = callbackFlow {
+        // GA Realtime API: do NOT send the OpenAI-Beta header. The realtime=v1
+        // value pins us to the legacy beta endpoint, which doesn't have
+        // gpt-realtime-whisper. Matches Sources/Network/RealtimeClient.swift.
         val request = Request.Builder()
             .url("wss://api.openai.com/v1/realtime?intent=transcription")
             .header("Authorization", "Bearer $apiKey")
-            .header("OpenAI-Beta", "realtime=v1")
             .build()
 
         val listener = object : WebSocketListener() {
@@ -51,7 +53,12 @@ class RealtimeClient(private val apiKey: String) {
             }
 
             override fun onFailure(ws: WebSocket, t: Throwable, response: Response?) {
-                trySend(RealtimeEvent.Error(t.message ?: "connection_failed"))
+                // Prefer the HTTP status code when the WebSocket upgrade is
+                // rejected — that's where 401 (bad API key) surfaces. Falls
+                // back to the throwable message for genuine network errors.
+                val code = response?.code?.toString() ?: t.message ?: "connection_failed"
+                android.util.Log.w("RealtimeClient", "WebSocket onFailure: code=$code msg=${t.message}", t)
+                trySend(RealtimeEvent.Error(code))
                 close()
             }
         }
