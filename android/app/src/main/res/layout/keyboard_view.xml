@@ -1,16 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="200dp"
+    android:layout_height="220dp"
     android:background="#1A1A1A">
 
-    <View
-        android:id="@+id/pulse_circle"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+    <!-- Mic button: the whole UX. Tap to start/stop recording. Color shifts
+         with state; pulsing alpha during Recording. -->
+    <FrameLayout
+        android:id="@+id/mic_button"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_gravity="center"
-        android:background="@drawable/circle_indicator" />
+        android:background="@drawable/circle_indicator"
+        android:backgroundTint="@color/mic_idle"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="6dp">
 
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_mic"
+            android:contentDescription="Microphone" />
+    </FrameLayout>
+
+    <!-- Language label (top-left) -->
     <TextView
         android:id="@+id/lang_button"
         android:layout_width="wrap_content"
@@ -22,23 +37,14 @@
         android:text="zh"
         android:padding="8dp" />
 
-    <TextView
-        android:id="@+id/stop_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:text="■ Stop"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:padding="12dp" />
-
+    <!-- Status text (centred below the mic): shows "…" while finalizing
+         or the error message in error states. Hidden otherwise. -->
     <TextView
         android:id="@+id/status_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="72dp"
+        android:layout_marginBottom="28dp"
         android:textColor="#AAAAAA"
         android:textSize="13sp"
         android:visibility="gone" />

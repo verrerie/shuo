@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="mic_idle">#4CAF50</color>
+    <color name="mic_recording">#F44336</color>
+    <color name="mic_finalizing">#FF9800</color>
+    <color name="mic_error">#F57C00</color>
+</resources>
