@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="200dp"
+    android:background="#1A1A1A">
+
+    <View
+        android:id="@+id/pulse_circle"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:background="@drawable/circle_indicator" />
+
+    <TextView
+        android:id="@+id/lang_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:layout_margin="16dp"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:text="zh"
+        android:padding="8dp" />
+
+    <TextView
+        android:id="@+id/stop_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:text="■ Stop"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:padding="12dp" />
+
+    <TextView
+        android:id="@+id/status_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="72dp"
+        android:textColor="#AAAAAA"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+</FrameLayout>

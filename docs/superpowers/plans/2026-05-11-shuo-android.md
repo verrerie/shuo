@@ -1130,12 +1130,7 @@ class KeyboardView @JvmOverloads constructor(
             is DictationState.Error -> {
                 stopButton.visibility = GONE
                 statusLabel.visibility = VISIBLE
-                statusLabel.text = when (state.message) {
-                    "no_api_key" -> context.getString(R.string.error_no_api_key)
-                    "cap_reached" -> context.getString(R.string.error_cap_reached)
-                    "api_rejected" -> context.getString(R.string.error_api_rejected)
-                    else -> context.getString(R.string.error_generic)
-                }
+                statusLabel.text = context.getString(errorStringRes(state.message))
                 stopPulse()
             }
             DictationState.Idle -> {
@@ -1144,6 +1139,16 @@ class KeyboardView @JvmOverloads constructor(
                 stopPulse()
             }
         }
+    }
+
+    // Maps controller error codes (raw from RealtimeEvent.Error or controller-internal
+    // strings like "no_api_key") to user-facing strings. Owned by the UI so the
+    // controller can stay code-agnostic.
+    private fun errorStringRes(code: String): Int = when (code) {
+        "no_api_key" -> R.string.error_no_api_key
+        "cap_reached" -> R.string.error_cap_reached
+        "401" -> R.string.error_api_rejected
+        else -> R.string.error_generic
     }
 
     private fun startPulse() {
