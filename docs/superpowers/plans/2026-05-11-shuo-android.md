@@ -1248,6 +1248,7 @@ import app.shuo.controller.Logger
 import app.shuo.network.RealtimeClient
 import app.shuo.settings.ConfigStore
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -1282,7 +1283,9 @@ class ShuoIME : InputMethodService() {
     override fun onStartInputView(info: android.view.inputmethod.EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         rebuildController()
-        controller.state.onEach { state ->
+        // drop(1) skips the StateFlow's initial Idle emission so we don't
+        // fire switchToPreviousInputMethod() before start() runs.
+        controller.state.drop(1).onEach { state ->
             val lang = config.defaultLanguage
             keyboardView.render(state, lang)
             if (state == DictationState.Idle) {
