@@ -687,19 +687,19 @@ package app.shuo.settings
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import androidx.security.crypto.MasterKeys
 import java.time.LocalDate
 
 class ConfigStore(context: Context) {
 
-    private val masterKey = MasterKey.Builder(context)
-        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-        .build()
+    // androidx.security-crypto 1.0.0 API — MasterKey (singular) only exists
+    // in 1.1.0-alpha. We pin 1.0.0 for stability, so use MasterKeys + alias.
+    private val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
 
     private val secure: SharedPreferences = EncryptedSharedPreferences.create(
-        context,
         "shuo_secure",
-        masterKey,
+        masterKeyAlias,
+        context,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
