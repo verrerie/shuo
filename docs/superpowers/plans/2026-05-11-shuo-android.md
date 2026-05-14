@@ -776,14 +776,25 @@ git commit -m "feat(android): add ConfigStore with encrypted API key storage"
 package app.shuo.controller
 
 import app.shuo.network.RealtimeEvent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.test.*
+import org.junit.After
 import org.junit.Assert.*
+import org.junit.Before
 import org.junit.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DictationControllerTest {
+
+    // Controller eagerly creates a scope on Dispatchers.Main, which is unbound
+    // on JVM unit tests — redirect to a test dispatcher so construction works
+    // and advanceUntilIdle() drives the controller's coroutines.
+    private val testDispatcher = StandardTestDispatcher()
+
+    @Before fun setUp() { Dispatchers.setMain(testDispatcher) }
+    @After fun tearDown() { Dispatchers.resetMain() }
 
     private fun makeController(
         apiKey: String = "sk-test",
@@ -941,8 +952,7 @@ class DictationController(
                             onTextReady(event.text)
                         }
                         is RealtimeEvent.Error -> {
-                            if (event.code == "401") _state.value = DictationState.Error("api_rejected")
-                            else _state.value = DictationState.Error(event.code)
+                            _state.value = DictationState.Error(event.code)
                         }
                         else -> {}
                     }
