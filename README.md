@@ -39,6 +39,24 @@ Then open Preferences from the menu-bar icon, paste your OpenAI API key, pick a 
 
 Outputs `build/export/Shuo.app`.
 
+## Android
+
+Shuo also ships as an Android keyboard (IME). Grab the signed APK from the
+[latest release](https://github.com/verrerie/shuo/releases/latest)
+(`shuo-android-v0.1.0.apk`) and sideload it, then enable **Shuo** under
+Settings → System → Languages & input → On-screen keyboard. Open the Shuo app
+to paste your OpenAI API key, switch to the Shuo keyboard, and **tap the mic to
+start, tap again to stop** — the transcript is inserted into the focused field.
+
+To build it yourself:
+
+```
+cd android
+./gradlew assembleRelease    # signed if ~/.config/shuo/keystore.properties exists, else unsigned
+```
+
+Output: `android/app/build/outputs/apk/release/app-release.apk`.
+
 ## Usage
 
 - **Double-tap Left-Option** to start listening. The indicator appears at the bottom of the screen.
